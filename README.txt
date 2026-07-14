@@ -1,13 +1,15 @@
-ReadFlow AI - THE SHOCKER No.41 Complete 48-Page Reader
+ReadFlow AI v0.3 — Pages 1–5 Learning Edition
 
-已完成：
-- 48页全部导入
-- 上一页 / 下一页
-- 页码跳转
-- 自动保存阅读进度
-- 夜间模式
-- 第2、3页完整中英、发音和词汇
+新增：
+- 第1至5页完整学习版
+- 忠于原文的中文翻译
+- 较深词汇括号解释
+- Vocabulary 等级标签
+- Grammar Focus
+- Reading Notes
+- 每句英文及重点词汇发音
+- 原有48页阅读、翻页、跳页、进度及夜间模式继续保留
 
-上传方式：
-- 把所有根目录文件上传到 GitHub repository 根目录
-- 把 assets/pages 文件夹及其中48张图片完整上传
+上传到 GitHub：
+覆盖 app.js、styles.css、book-data.json。
+图片和其他文件没有改变，不需要重新上传48张图片。
