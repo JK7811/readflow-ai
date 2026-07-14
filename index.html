@@ -1,11 +1,14 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#171411" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#171411">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
   <title>ReadFlow AI</title>
-  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <header class="topbar">
@@ -20,8 +23,8 @@
     <section id="libraryView" class="view active">
       <div class="hero">
         <p class="eyebrow">BILINGUAL AUDIO READER</p>
-        <h1>Read smarter.<br />Listen naturally.</h1>
-        <p class="hero-copy">先把现有杂志完整做好：原刊页面、中英对照、逐句发音、阅读进度与重点词汇。</p>
+        <h1>Read smarter.<br>Listen naturally.</h1>
+        <p class="hero-copy">正式版第一阶段：书库、逐页阅读、中英对照、英文发音、阅读进度和夜间模式。</p>
       </div>
 
       <section class="section">
@@ -32,45 +35,22 @@
           </div>
           <span class="pill">1 本</span>
         </div>
-
-        <article class="book-card">
-          <div class="book-cover-wrap">
-            <img src="./assets/shocker-page-02.jpg" onerror="this.src='./assets/shocker-page-02.svg'" alt="THE SHOCKER No.41" class="book-cover" />
-            <span class="cover-badge">正在阅读</span>
-          </div>
-          <div class="book-info">
-            <p class="book-series">TRUE CRIME · BILINGUAL</p>
-            <h3>THE SHOCKER No.41</h3>
-            <p class="muted">June 2026 · 有声双语学习版</p>
-
-            <div class="progress-row">
-              <span>阅读进度</span>
-              <strong id="libraryProgressText">Page 2 / 48</strong>
-            </div>
-            <div class="progress-track">
-              <div id="libraryProgressBar" class="progress-fill"></div>
-            </div>
-
-            <button id="openBookButton" class="primary-button">继续阅读</button>
-          </div>
-        </article>
+        <div id="libraryGrid" class="library-grid"></div>
       </section>
     </section>
 
     <section id="readerView" class="view">
       <div class="reader-shell">
         <aside class="page-panel">
-          <img src="./assets/shocker-page-02.jpg" onerror="this.src='./assets/shocker-page-02.svg'" alt="原刊第2页" />
-          <div class="page-caption">原刊第 2 页 · 图片保留</div>
+          <img id="pageImage" alt="原刊页面">
+          <div id="pageCaption" class="page-caption"></div>
         </aside>
 
         <section class="reading-panel">
           <div class="reader-toolbar">
             <div>
-              <p class="eyebrow">PAGE 2 / 48</p>
-              <div class="mini-progress">
-                <div id="readerProgressBar"></div>
-              </div>
+              <p id="pageCounter" class="eyebrow"></p>
+              <div class="mini-progress"><div id="readerProgressBar"></div></div>
             </div>
 
             <div class="audio-controls">
@@ -86,9 +66,9 @@
             </div>
           </div>
 
-          <p class="eyebrow">THE MURDER OF JACQUELINE SHEEHAN</p>
-          <h2 class="article-title">The last night she was seen alive</h2>
-          <p class="muted intro">点击每句旁边的 ▶ 听英文。播放时句子会自动高亮。</p>
+          <p id="sectionName" class="eyebrow"></p>
+          <h2 id="articleTitle" class="article-title"></h2>
+          <p class="muted intro">点击每句旁边的 ▶ 听英文；播放时当前句子会高亮。</p>
 
           <div id="sentenceList"></div>
 
@@ -104,30 +84,23 @@
           </section>
 
           <div class="page-navigation">
-            <button class="secondary-button" disabled>← 上一页</button>
-            <button class="secondary-button" disabled>下一页 →</button>
+            <button id="previousButton" class="secondary-button">← 上一页</button>
+            <button id="nextButton" class="primary-button">下一页 →</button>
           </div>
-          <p class="coming-note">目前先完成第 2 页。下一步会继续加入第 3 页内容和真正翻页。</p>
+          <p id="availabilityNote" class="coming-note"></p>
         </section>
       </div>
     </section>
   </main>
 
   <nav class="bottom-nav">
-    <button class="nav-item active" data-view="libraryView">
-      <span>▦</span><small>书库</small>
-    </button>
-    <button class="nav-item" id="continueNav">
-      <span>▶</span><small>阅读</small>
-    </button>
-    <button class="nav-item disabled">
-      <span>★</span><small>生字本</small>
-    </button>
-    <button class="nav-item disabled">
-      <span>⚙</span><small>设置</small>
-    </button>
+    <button class="nav-item active" id="libraryNav"><span>▦</span><small>书库</small></button>
+    <button class="nav-item" id="readerNav"><span>▶</span><small>阅读</small></button>
+    <button class="nav-item disabled"><span>★</span><small>生字本</small></button>
+    <button class="nav-item disabled"><span>⚙</span><small>设置</small></button>
   </nav>
 
+  <script src="./book-data.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
