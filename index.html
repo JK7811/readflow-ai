@@ -1,106 +1,80 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#171411">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css">
-  <title>ReadFlow AI</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#171411">
+<title>ReadFlow AI - THE SHOCKER No.41</title>
+<link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <button id="backButton" class="icon-button hidden" aria-label="返回书库">←</button>
-    <div class="brand">ReadFlow <span>AI</span></div>
-    <div class="topbar-actions">
-      <button id="themeButton" class="icon-button" aria-label="切换夜间模式">◐</button>
-    </div>
-  </header>
+<header class="topbar">
+  <button id="backBtn" class="icon hidden">←</button>
+  <div class="brand">ReadFlow <span>AI</span></div>
+  <div class="spacer"></div>
+  <button id="themeBtn" class="icon">◐</button>
+</header>
 
-  <main>
-    <section id="libraryView" class="view active">
-      <div class="hero">
-        <p class="eyebrow">BILINGUAL AUDIO READER</p>
-        <h1>Read smarter.<br>Listen naturally.</h1>
-        <p class="hero-copy">正式版第一阶段：书库、逐页阅读、中英对照、英文发音、阅读进度和夜间模式。</p>
+<main>
+<section id="library" class="view active">
+  <div class="hero">
+    <p class="eyebrow">COMPLETE 48-PAGE READER</p>
+    <h1>Read. Listen.<br>Understand.</h1>
+    <p>整本 48 页已经导入。第 2、3 页已有完整中英学习内容，其余页面先保留原刊并可正常翻页。</p>
+  </div>
+  <div class="library">
+    <article class="book">
+      <img src="./assets/pages/page-01.jpg" alt="cover">
+      <div class="bookInfo">
+        <p class="eyebrow">TRUE CRIME · 48 PAGES</p>
+        <h2>THE SHOCKER No.41</h2>
+        <p class="muted">June 2026 · Complete Reader</p>
+        <div class="row"><span>上次阅读</span><strong id="lastPageText">Page 1 / 48</strong></div>
+        <div class="track"><div id="libraryProgress"></div></div>
+        <div class="row"><span>已完成学习版</span><strong>2 / 48</strong></div>
+        <button id="openBtn" class="primary">继续阅读</button>
       </div>
+    </article>
+  </div>
+</section>
 
-      <section class="section">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">MY LIBRARY</p>
-            <h2>我的书库</h2>
-          </div>
-          <span class="pill">1 本</span>
+<section id="reader" class="view">
+  <div class="readerGrid">
+    <aside class="pagePane">
+      <img id="pageImage" alt="magazine page">
+      <div id="pageCaption"></div>
+    </aside>
+
+    <section class="contentPane">
+      <div class="toolbar">
+        <div>
+          <p id="pageCounter" class="eyebrow"></p>
+          <div class="track small"><div id="readerProgress"></div></div>
         </div>
-        <div id="libraryGrid" class="library-grid"></div>
-      </section>
-    </section>
+        <div class="tools">
+          <select id="pageSelect"></select>
+          <select id="rate">
+            <option value="0.7">0.7×</option>
+            <option value="0.85">0.85×</option>
+            <option value="1" selected>1.0×</option>
+            <option value="1.15">1.15×</option>
+          </select>
+          <button id="playAll" class="secondary">▶ 连续播放</button>
+          <button id="stop" class="danger">■ 停止</button>
+        </div>
+      </div>
 
-    <section id="readerView" class="view">
-      <div class="reader-shell">
-        <aside class="page-panel">
-          <img id="pageImage" alt="原刊页面">
-          <div id="pageCaption" class="page-caption"></div>
-        </aside>
+      <div id="learningContent"></div>
 
-        <section class="reading-panel">
-          <div class="reader-toolbar">
-            <div>
-              <p id="pageCounter" class="eyebrow"></p>
-              <div class="mini-progress"><div id="readerProgressBar"></div></div>
-            </div>
-
-            <div class="audio-controls">
-              <label for="rateSelect">语速</label>
-              <select id="rateSelect">
-                <option value="0.7">0.7×</option>
-                <option value="0.85">0.85×</option>
-                <option value="1" selected>1.0×</option>
-                <option value="1.15">1.15×</option>
-              </select>
-              <button id="playAllButton" class="secondary-button">▶ 连续播放</button>
-              <button id="stopButton" class="danger-button">■ 停止</button>
-            </div>
-          </div>
-
-          <p id="sectionName" class="eyebrow"></p>
-          <h2 id="articleTitle" class="article-title"></h2>
-          <p class="muted intro">点击每句旁边的 ▶ 听英文；播放时当前句子会高亮。</p>
-
-          <div id="sentenceList"></div>
-
-          <section class="vocabulary-box">
-            <div class="section-heading compact">
-              <div>
-                <p class="eyebrow">VOCABULARY</p>
-                <h3>重点词汇</h3>
-              </div>
-              <span class="pill">点击发音</span>
-            </div>
-            <div id="vocabularyGrid" class="vocabulary-grid"></div>
-          </section>
-
-          <div class="page-navigation">
-            <button id="previousButton" class="secondary-button">← 上一页</button>
-            <button id="nextButton" class="primary-button">下一页 →</button>
-          </div>
-          <p id="availabilityNote" class="coming-note"></p>
-        </section>
+      <div class="nav">
+        <button id="prev" class="secondary">← 上一页</button>
+        <button id="next" class="primary">下一页 →</button>
       </div>
     </section>
-  </main>
+  </div>
+</section>
+</main>
 
-  <nav class="bottom-nav">
-    <button class="nav-item active" id="libraryNav"><span>▦</span><small>书库</small></button>
-    <button class="nav-item" id="readerNav"><span>▶</span><small>阅读</small></button>
-    <button class="nav-item disabled"><span>★</span><small>生字本</small></button>
-    <button class="nav-item disabled"><span>⚙</span><small>设置</small></button>
-  </nav>
-
-  <script src="./book-data.js"></script>
-  <script src="./app.js"></script>
+<script src="./app.js"></script>
 </body>
 </html>

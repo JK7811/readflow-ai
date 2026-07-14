@@ -1,229 +1,70 @@
 
-const state = {
-  book: window.READFLOW_BOOKS[0],
-  currentPage: Number(localStorage.getItem("readflow-shocker-41-page")) || 2,
-  queueCancelled: false
-};
+let book;
+let currentPage = Number(localStorage.getItem('readflow-page')) || 1;
+let queueCancelled = false;
+const $ = id => document.getElementById(id);
 
-const els = {
-  libraryView: document.getElementById("libraryView"),
-  readerView: document.getElementById("readerView"),
-  libraryGrid: document.getElementById("libraryGrid"),
-  backButton: document.getElementById("backButton"),
-  themeButton: document.getElementById("themeButton"),
-  libraryNav: document.getElementById("libraryNav"),
-  readerNav: document.getElementById("readerNav"),
-  pageImage: document.getElementById("pageImage"),
-  pageCaption: document.getElementById("pageCaption"),
-  pageCounter: document.getElementById("pageCounter"),
-  readerProgressBar: document.getElementById("readerProgressBar"),
-  sectionName: document.getElementById("sectionName"),
-  articleTitle: document.getElementById("articleTitle"),
-  sentenceList: document.getElementById("sentenceList"),
-  vocabularyGrid: document.getElementById("vocabularyGrid"),
-  previousButton: document.getElementById("previousButton"),
-  nextButton: document.getElementById("nextButton"),
-  playAllButton: document.getElementById("playAllButton"),
-  stopButton: document.getElementById("stopButton"),
-  rateSelect: document.getElementById("rateSelect"),
-  availabilityNote: document.getElementById("availabilityNote")
-};
+fetch('./book-data.json').then(r=>r.json()).then(data=>{
+  book=data;
+  buildPageSelect();
+  updateLibrary();
+});
 
-function progressPercent(page) {
-  return Math.max(0, Math.min(100, (page / state.book.totalPages) * 100));
+function buildPageSelect(){
+  $('pageSelect').innerHTML = Array.from({length:book.totalPages},(_,i)=>`<option value="${i+1}">Page ${i+1}</option>`).join('');
+  $('pageSelect').addEventListener('change',e=>goToPage(Number(e.target.value)));
 }
-
-function renderLibrary() {
-  const page = state.currentPage;
-  els.libraryGrid.innerHTML = `
-    <article class="book-card">
-      <div class="book-cover-wrap">
-        <img class="book-cover" src="${state.book.cover}" alt="${state.book.title}">
-        <span class="cover-badge">正在阅读</span>
-      </div>
-      <div class="book-info">
-        <p class="book-series">${state.book.category}</p>
-        <h3>${state.book.title}</h3>
-        <p class="muted">${state.book.subtitle}</p>
-        <div class="progress-row"><span>阅读进度</span><strong>Page ${page} / ${state.book.totalPages}</strong></div>
-        <div class="progress-track"><div class="progress-fill" style="width:${progressPercent(page)}%"></div></div>
-        <button class="primary-button" id="openBookButton">继续阅读</button>
-      </div>
-    </article>
-  `;
-  document.getElementById("openBookButton").addEventListener("click", openReader);
+function progress(page){return (page/book.totalPages)*100}
+function updateLibrary(){
+  $('lastPageText').textContent=`Page ${currentPage} / ${book.totalPages}`;
+  $('libraryProgress').style.width=`${progress(currentPage)}%`;
 }
-
-function availableIndex() {
-  return state.book.availablePages.indexOf(state.currentPage);
+function openReader(){
+  $('library').classList.remove('active');$('reader').classList.add('active');$('backBtn').classList.remove('hidden');renderPage();window.scrollTo(0,0)
 }
-
-function renderPage() {
-  const page = state.book.pages[state.currentPage];
-  if (!page) {
-    state.currentPage = state.book.availablePages[0];
-    return renderPage();
-  }
-
-  localStorage.setItem("readflow-shocker-41-page", String(state.currentPage));
-  els.pageImage.src = page.image;
-  els.pageCaption.textContent = `原刊第 ${state.currentPage} 页 · 图片保留`;
-  els.pageCounter.textContent = `PAGE ${state.currentPage} / ${state.book.totalPages}`;
-  els.readerProgressBar.style.width = `${progressPercent(state.currentPage)}%`;
-  els.sectionName.textContent = page.section;
-  els.articleTitle.textContent = page.title;
-
-  els.sentenceList.innerHTML = page.sentences.map((item, index) => `
-    <article class="sentence-card" id="sentence-${index}">
-      <div class="sentence-top">
-        <button class="play-button" onclick="speakSentence(${index})" aria-label="播放英文句子">▶</button>
-        <p class="english">${item.en}</p>
-      </div>
-      <p class="chinese">${item.zh}</p>
-    </article>
-  `).join("");
-
-  els.vocabularyGrid.innerHTML = page.vocabulary.map(item => `
-    <div class="vocabulary-item">
-      <button class="word-button" onclick="speakWord(${JSON.stringify(item.word)})">▶ ${item.word}</button>
-      <span class="word-meaning">（${item.meaning}）</span>
-    </div>
-  `).join("");
-
-  const index = availableIndex();
-  els.previousButton.disabled = index <= 0;
-  els.nextButton.disabled = index >= state.book.availablePages.length - 1;
-  els.availabilityNote.textContent = `正式版目前已完成第 ${state.book.availablePages.join("、")} 页；下一步继续加入后面的页面。`;
-  renderLibrary();
+function showLibrary(){
+  stopSpeech();$('reader').classList.remove('active');$('library').classList.add('active');$('backBtn').classList.add('hidden');updateLibrary();window.scrollTo(0,0)
 }
-
-function openReader() {
-  els.libraryView.classList.remove("active");
-  els.readerView.classList.add("active");
-  els.backButton.classList.remove("hidden");
-  setNav("reader");
-  renderPage();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+function renderPage(){
+  localStorage.setItem('readflow-page',currentPage);
+  $('pageImage').src=`./assets/pages/page-${String(currentPage).padStart(2,'0')}.jpg`;
+  $('pageCaption').textContent=`原刊第 ${currentPage} 页 · 完整保留`;
+  $('pageCounter').textContent=`PAGE ${currentPage} / ${book.totalPages}`;
+  $('readerProgress').style.width=`${progress(currentPage)}%`;
+  $('pageSelect').value=String(currentPage);
+  $('prev').disabled=currentPage===1;$('next').disabled=currentPage===book.totalPages;
+  const data=book.pages[String(currentPage)] || book.pages[currentPage];
+  if(data) renderEnhanced(data); else renderOriginalOnly();
+  updateLibrary();
 }
-
-function showLibrary() {
-  stopSpeech();
-  els.readerView.classList.remove("active");
-  els.libraryView.classList.add("active");
-  els.backButton.classList.add("hidden");
-  setNav("library");
-  renderLibrary();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+function renderOriginalOnly(){
+  $('learningContent').innerHTML=`<div class="statusCard"><p class="eyebrow">ORIGINAL PAGE AVAILABLE</p><h2>Page ${currentPage}</h2><p>这一页已经完整导入，可以正常阅读和翻页。中英翻译、逐句发音与重点词汇会在下一阶段逐页补上。</p><p><strong>学习版进度：</strong>目前已完成第 ${book.enhancedPages.join('、')} 页。</p></div>`;
 }
-
-function setNav(view) {
-  els.libraryNav.classList.toggle("active", view === "library");
-  els.readerNav.classList.toggle("active", view === "reader");
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderEnhanced(data){
+  const sentences=data.sentences.map((s,i)=>`<article class="sentence" id="sentence-${i}"><div class="sentenceTop"><button class="play" onclick="speakSentence(${i})">▶</button><p class="en">${esc(s[0])}</p></div><p class="zh">${esc(s[1])}</p></article>`).join('');
+  const vocab=data.vocabulary.map(v=>`<div class="vocab"><button onclick='speakText(${JSON.stringify(v[0])})'>▶ ${esc(v[0])}</button><span>（${esc(v[1])}）</span></div>`).join('');
+  $('learningContent').innerHTML=`<div class="statusCard"><p class="eyebrow">${esc(data.section)}</p><h2>${esc(data.title)}</h2><p>此页已完成中英学习版。</p></div>${sentences}<section class="vocabBox"><p class="eyebrow">VOCABULARY</p><h3>重点词汇</h3><div class="vocabGrid">${vocab}</div></section>`;
 }
-
-function clearActiveSentence() {
-  document.querySelectorAll(".sentence-card").forEach(card => card.classList.remove("active"));
+function voice(){
+  const vs=speechSynthesis.getVoices();
+  return vs.find(v=>/^en-(US|GB)/.test(v.lang)&&/Samantha|Daniel|Karen|Moira|Google|Microsoft/i.test(v.name))||vs.find(v=>/^en-/.test(v.lang))||null
 }
-
-function preferredVoice() {
-  const voices = speechSynthesis.getVoices();
-  return voices.find(v => /^en-(US|GB)/.test(v.lang) && /Samantha|Daniel|Karen|Moira|Google|Microsoft/i.test(v.name))
-    || voices.find(v => /^en-/.test(v.lang))
-    || null;
+function utter(text,index=null){
+  const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=Number($('rate').value);const v=voice();if(v)u.voice=v;
+  u.onstart=()=>{document.querySelectorAll('.sentence').forEach(x=>x.classList.remove('active'));if(index!==null){const el=$(`sentence-${index}`);if(el){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'center'})}}};
+  u.onend=()=>document.querySelectorAll('.sentence').forEach(x=>x.classList.remove('active'));
+  return u
 }
-
-function makeUtterance(text, index = null) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-US";
-  utterance.rate = Number(els.rateSelect.value);
-  const voice = preferredVoice();
-  if (voice) utterance.voice = voice;
-
-  utterance.onstart = () => {
-    clearActiveSentence();
-    if (index !== null) {
-      const card = document.getElementById(`sentence-${index}`);
-      if (card) {
-        card.classList.add("active");
-        card.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }
-  };
-  utterance.onend = clearActiveSentence;
-  utterance.onerror = clearActiveSentence;
-  return utterance;
+window.speakSentence=i=>{const d=book.pages[String(currentPage)]||book.pages[currentPage];if(!d)return;queueCancelled=true;speechSynthesis.cancel();setTimeout(()=>{queueCancelled=false;speechSynthesis.speak(utter(d.sentences[i][0],i))},70)}
+window.speakText=text=>{queueCancelled=true;speechSynthesis.cancel();setTimeout(()=>{queueCancelled=false;speechSynthesis.speak(utter(text))},70)}
+async function playAll(){
+  const d=book.pages[String(currentPage)]||book.pages[currentPage];if(!d)return;
+  stopSpeech();queueCancelled=false;
+  for(let i=0;i<d.sentences.length;i++){if(queueCancelled)break;await new Promise(resolve=>{const u=utter(d.sentences[i][0],i);u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u)})}
 }
-
-window.speakSentence = function(index) {
-  const page = state.book.pages[state.currentPage];
-  state.queueCancelled = true;
-  speechSynthesis.cancel();
-  setTimeout(() => {
-    state.queueCancelled = false;
-    speechSynthesis.speak(makeUtterance(page.sentences[index].en, index));
-  }, 80);
-};
-
-window.speakWord = function(word) {
-  state.queueCancelled = true;
-  speechSynthesis.cancel();
-  setTimeout(() => {
-    state.queueCancelled = false;
-    speechSynthesis.speak(makeUtterance(word));
-  }, 80);
-};
-
-async function playAll() {
-  stopSpeech();
-  state.queueCancelled = false;
-  const page = state.book.pages[state.currentPage];
-
-  for (let index = 0; index < page.sentences.length; index += 1) {
-    if (state.queueCancelled) break;
-    await new Promise(resolve => {
-      const utterance = makeUtterance(page.sentences[index].en, index);
-      utterance.onend = () => { clearActiveSentence(); resolve(); };
-      utterance.onerror = () => { clearActiveSentence(); resolve(); };
-      speechSynthesis.speak(utterance);
-    });
-  }
-}
-
-function stopSpeech() {
-  state.queueCancelled = true;
-  speechSynthesis.cancel();
-  clearActiveSentence();
-}
-
-function movePage(offset) {
-  stopSpeech();
-  const index = availableIndex();
-  const target = state.book.availablePages[index + offset];
-  if (!target) return;
-  state.currentPage = target;
-  renderPage();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-function toggleTheme() {
-  document.body.classList.toggle("dark");
-  localStorage.setItem("readflow-theme", document.body.classList.contains("dark") ? "dark" : "light");
-}
-
-els.previousButton.addEventListener("click", () => movePage(-1));
-els.nextButton.addEventListener("click", () => movePage(1));
-els.playAllButton.addEventListener("click", playAll);
-els.stopButton.addEventListener("click", stopSpeech);
-els.backButton.addEventListener("click", showLibrary);
-els.libraryNav.addEventListener("click", showLibrary);
-els.readerNav.addEventListener("click", openReader);
-els.themeButton.addEventListener("click", toggleTheme);
-
-if (localStorage.getItem("readflow-theme") === "dark") document.body.classList.add("dark");
-
-renderLibrary();
-speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));
-}
+function stopSpeech(){queueCancelled=true;speechSynthesis.cancel();document.querySelectorAll('.sentence').forEach(x=>x.classList.remove('active'))}
+function goToPage(n){stopSpeech();currentPage=Math.max(1,Math.min(book.totalPages,n));renderPage();window.scrollTo({top:0,behavior:'smooth'})}
+$('openBtn').onclick=openReader;$('backBtn').onclick=showLibrary;$('prev').onclick=()=>goToPage(currentPage-1);$('next').onclick=()=>goToPage(currentPage+1);$('playAll').onclick=playAll;$('stop').onclick=stopSpeech;$('themeBtn').onclick=()=>{document.body.classList.toggle('dark');localStorage.setItem('readflow-theme',document.body.classList.contains('dark')?'dark':'light')};
+if(localStorage.getItem('readflow-theme')==='dark')document.body.classList.add('dark');
+speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
