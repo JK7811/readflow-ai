@@ -17,3 +17,5 @@ button,select{font:inherit}.topbar{position:sticky;top:0;z-index:20;height:60px;
 .learningItem:first-of-type{border-top:0}
 .learningItem p,.learningBox li{color:var(--muted);line-height:1.7}
 .learningBox ul{margin:0;padding-left:20px}
+.takeawayBox{border-color:var(--gold);background:rgba(194,155,98,.11)}
+.takeawayBox>p:last-child{margin-bottom:0;color:var(--muted);line-height:1.7}
